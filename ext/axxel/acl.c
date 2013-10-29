@@ -19,6 +19,7 @@
 #include "kernel/fcall.h"
 #include "kernel/concat.h"
 #include "kernel/operators.h"
+#include "kernel/array.h"
 #include "kernel/string.h"
 
 
