@@ -20,6 +20,7 @@
 #include "ext/spl/spl_exceptions.h"
 #include "kernel/exception.h"
 #include "kernel/concat.h"
+#include "kernel/file.h"
 #include "kernel/string.h"
 
 
@@ -156,11 +157,9 @@ PHP_METHOD(Axxel_Client, send) {
 	ZVAL_NULL(data);
 	ZEPHIR_INIT_LNVAR(_3);
 	ZEPHIR_CONCAT_VS(_3, command, "\n");
-	zephir_call_func_p2_noret("fwrite", socket, _3);
+	zephir_fwrite(NULL, socket, _3);
 	while (1) {
-		ZEPHIR_INIT_NVAR(_2);
-		zephir_call_func_p1(_2, "feof", socket);
-		if (!(!(zephir_is_true(_2)))) {
+		if (!(!(zephir_feof(socket)))) {
 			break;
 		}
 		ZEPHIR_SINIT_NVAR(_4);
