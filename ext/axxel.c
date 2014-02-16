@@ -1,9 +1,16 @@
 
+/* This file was generated automatically by Zephir do not modify it! */
+
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
 
 #include <php.h>
+
+#if PHP_VERSION_ID < 50500
+#include <locale.h>
+#endif
+
 #include "php_ext.h"
 #include "axxel.h"
 
@@ -22,26 +29,63 @@ zend_class_entry *axxel_exception_ce;
 
 ZEND_DECLARE_MODULE_GLOBALS(axxel)
 
-PHP_MINIT_FUNCTION(axxel){
+static PHP_MINIT_FUNCTION(axxel)
+{
+#if PHP_VERSION_ID < 50500
+	const char* old_lc_all = setlocale(LC_ALL, NULL);
+	if (old_lc_all) {
+		char *tmp = calloc(strlen(old_lc_all)+1, 1);
+		memcpy(tmp, old_lc_all, strlen(old_lc_all));
+		old_lc_all = tmp;
+	}
+
+	setlocale(LC_ALL, "C");
+#endif
 
 	ZEPHIR_INIT(Axxel_Acl);
 	ZEPHIR_INIT(Axxel_Client);
 	ZEPHIR_INIT(Axxel_Exception);
+
+#if PHP_VERSION_ID < 50500
+	setlocale(LC_ALL, old_lc_all);
+	free(old_lc_all);
+#endif
 	return SUCCESS;
 }
 
 #ifndef ZEPHIR_RELEASE
-static PHP_MSHUTDOWN_FUNCTION(axxel){
+static PHP_MSHUTDOWN_FUNCTION(axxel)
+{
 
 	assert(ZEPHIR_GLOBAL(function_cache) == NULL);
-	//assert(ZEPHIR_GLOBAL(orm).parser_cache == NULL);
-	//assert(ZEPHIR_GLOBAL(orm).ast_cache == NULL);
 
 	return SUCCESS;
 }
 #endif
 
-static PHP_RINIT_FUNCTION(axxel){
+/**
+ * Initialize globals on each request or each thread started
+ */
+static void php_zephir_init_globals(zend_zephir_globals *zephir_globals TSRMLS_DC)
+{
+
+	/* Memory options */
+	zephir_globals->active_memory = NULL;
+
+	/* Virtual Symbol Tables */
+	zephir_globals->active_symbol_table = NULL;
+
+	/* Cache options */
+	zephir_globals->function_cache = NULL;
+
+	/* Recursive Lock */
+	zephir_globals->recursive_lock = 0;
+
+
+}
+
+static PHP_RINIT_FUNCTION(axxel)
+{
 
 	php_zephir_init_globals(ZEPHIR_VGLOBAL TSRMLS_CC);
 	//axxel_init_interned_strings(TSRMLS_C);
@@ -49,7 +93,8 @@ static PHP_RINIT_FUNCTION(axxel){
 	return SUCCESS;
 }
 
-static PHP_RSHUTDOWN_FUNCTION(axxel){
+static PHP_RSHUTDOWN_FUNCTION(axxel)
+{
 
 	if (ZEPHIR_GLOBAL(start_memory) != NULL) {
 		zephir_clean_restore_stack(TSRMLS_C);
@@ -67,8 +112,11 @@ static PHP_RSHUTDOWN_FUNCTION(axxel){
 static PHP_MINFO_FUNCTION(axxel)
 {
 	php_info_print_table_start();
+	php_info_print_table_header(2, PHP_AXXEL_NAME, "enabled");
 	php_info_print_table_row(2, "Version", PHP_AXXEL_VERSION);
 	php_info_print_table_end();
+
+
 }
 
 static PHP_GINIT_FUNCTION(axxel)
@@ -79,10 +127,10 @@ static PHP_GINIT_FUNCTION(axxel)
 
 	/* Start Memory Frame */
 	start = (zephir_memory_entry *) pecalloc(1, sizeof(zephir_memory_entry), 1);
-	start->addresses       = pecalloc(24, sizeof(zval*), 1);
-	start->capacity        = 24;
-	start->hash_addresses  = pecalloc(8, sizeof(zval*), 1);
-	start->hash_capacity   = 8;
+	start->addresses       = pecalloc(16, sizeof(zval*), 1);
+	start->capacity        = 16;
+	start->hash_addresses  = pecalloc(4, sizeof(zval*), 1);
+	start->hash_capacity   = 4;
 
 	axxel_globals->start_memory = start;
 
@@ -101,6 +149,7 @@ static PHP_GINIT_FUNCTION(axxel)
 	INIT_PZVAL(axxel_globals->global_null);
 	ZVAL_NULL(axxel_globals->global_null);
 	Z_ADDREF_P(axxel_globals->global_null);
+
 }
 
 static PHP_GSHUTDOWN_FUNCTION(axxel)

@@ -3,7 +3,7 @@
   +------------------------------------------------------------------------+
   | Zephir Language                                                        |
   +------------------------------------------------------------------------+
-  | Copyright (c) 2011-2013 Zephir Team (http://www.zephir-lang.com)       |
+  | Copyright (c) 2011-2014 Zephir Team (http://www.zephir-lang.com)       |
   +------------------------------------------------------------------------+
   | This source file is subject to the New BSD License that is bundled     |
   | with this package in the file docs/LICENSE.txt.                        |
@@ -299,6 +299,24 @@ int zephir_class_exists(const zval *class_name, int autoload TSRMLS_DC) {
 	}
 
 	php_error_docref(NULL TSRMLS_CC, E_WARNING, "class name must be a string");
+	return 0;
+}
+
+/**
+ * Checks if a interface exist
+ */
+int zephir_interface_exists(const zval *class_name, int autoload TSRMLS_DC) {
+
+	zend_class_entry **ce;
+
+	if (Z_TYPE_P(class_name) == IS_STRING) {
+		if (zend_lookup_class(Z_STRVAL_P(class_name), Z_STRLEN_P(class_name), &ce TSRMLS_CC) == SUCCESS) {
+			return (((*ce)->ce_flags & ZEND_ACC_INTERFACE) > 0);
+		}
+		return 0;
+	}
+
+	php_error_docref(NULL TSRMLS_CC, E_WARNING, "interface name must be a string");
 	return 0;
 }
 
@@ -1215,7 +1233,7 @@ int zephir_method_quick_exists_ex(const zval *object, const char *method_name, u
 
 zval* zephir_fetch_static_property_ce(zend_class_entry *ce, char *property, int len TSRMLS_DC) {
 	assert(ce != NULL);
-	return zend_read_static_property(ce, property, len, (zend_bool)ZEND_FETCH_CLASS_SILENT TSRMLS_CC);
+	return zend_read_static_property(ce, property, len, (zend_bool) ZEND_FETCH_CLASS_SILENT TSRMLS_CC);
 }
 
 int zephir_read_static_property_ce(zval **result, zend_class_entry *ce, char *property, int len TSRMLS_DC) {

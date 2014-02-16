@@ -28,11 +28,11 @@ class Client
 			this->_port = port;
 	}
 
-	public function getAcl(string! name, initialization=null) -> <Axxel\Acl>
+	public function getAcl(string! name, initialization=null) -> <Acl>
 	{
 		var acl;
 
-		let acl = new Axxel\Acl(this, name);
+		let acl = new Acl(this, name);
 		if is_callable(initialization)  {
 			if !this->isAcl(name) {
 				call_user_func_array(name, [initialization]);
@@ -55,7 +55,7 @@ class Client
 		}
 
 		if !socket {
-			throw new Axxel\Exception(errorString . " (" . errorNumber . ")");
+			throw new Exception(errorString . " (" . errorNumber . ")");
 		}
 
 		let data = null;
@@ -76,7 +76,7 @@ class Client
 		var status;
 
 		let status = this->send("var a = axxel.createAcl('" . addslashes(name) . "'); typeof a == 'object';");
-		return new Axxel\Acl(this, name);
+		return new Acl(this, name);
 	}
 
 	public function isAcl(string! name) -> boolean

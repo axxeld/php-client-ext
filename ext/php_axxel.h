@@ -1,12 +1,16 @@
 
+/* This file was generated automatically by Zephir do not modify it! */
 
 #ifndef PHP_AXXEL_H
 #define PHP_AXXEL_H 1
 
 #include "kernel/globals.h"
 
+#define PHP_AXXEL_NAME    "axxel"
 #define PHP_AXXEL_VERSION "0.0.1"
 #define PHP_AXXEL_EXTNAME "axxel"
+
+
 
 ZEND_BEGIN_MODULE_GLOBALS(axxel)
 
@@ -27,7 +31,7 @@ ZEND_BEGIN_MODULE_GLOBALS(axxel)
 	zval *global_true;
 	zval *global_false;
 	zval *global_null;
-
+	
 ZEND_END_MODULE_GLOBALS(axxel)
 
 #ifdef ZTS

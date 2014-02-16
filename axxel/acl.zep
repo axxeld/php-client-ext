@@ -20,7 +20,7 @@ class Acl
 
 	protected _name;
 
-	public function __construct(<Axxel\Client> axxel, string! name)
+	public function __construct(<Client> axxel, string! name)
 	{
 		let this->_axxel = axxel, this->_name = name;
 	}
@@ -64,7 +64,7 @@ class Acl
 			addslashes(action) . "')=='object';");
 	}
 
-	public function isAllowed(string! role, string! resource, permissions) -> boolean
+	public function isAllowed(string! role, string! resource, array permissions) -> boolean
 	{
 		var name, roleName, resourceName, perms,
 			status, permission;
@@ -73,7 +73,7 @@ class Acl
 			roleName = addslashes(role),
 			resourceName = addslashes(resource);
 
-		if (is_array(permissions)) {
+		if typeof permissions == "array" {
 			let perms = [];
 			for permission in permissions {
 				let perms[] = "'" . addslashes(permission) . "'";

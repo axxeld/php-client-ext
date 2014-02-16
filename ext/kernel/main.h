@@ -3,7 +3,7 @@
   +------------------------------------------------------------------------+
   | Zephir Language                                                        |
   +------------------------------------------------------------------------+
-  | Copyright (c) 2011-2013 Zephir Team (http://www.zephir-lang.com)       |
+  | Copyright (c) 2011-2014 Zephir Team (http://www.zephir-lang.com)       |
   +------------------------------------------------------------------------+
   | This source file is subject to the New BSD License that is bundled     |
   | with this package in the file docs/LICENSE.txt.                        |
@@ -43,32 +43,8 @@
 #define ISL(str) (zephir_interned_##str), (sizeof(#str)-1)
 #define ISS(str) (zephir_interned_##str), (sizeof(#str))
 
-
-/* Startup functions */
-void php_zephir_init_globals(zend_zephir_globals *zephir_globals TSRMLS_DC);
-zend_class_entry *zephir_register_internal_interface_ex(zend_class_entry *orig_ce, zend_class_entry *parent_ce TSRMLS_DC);
-
-/* Globals functions */
-int zephir_init_global(char *global, unsigned int global_length TSRMLS_DC);
-int zephir_get_global(zval **arr, const char *global, unsigned int global_length TSRMLS_DC);
-
-int zephir_is_callable(zval *var TSRMLS_DC);
-int zephir_function_exists(const zval *function_name TSRMLS_DC);
-int zephir_function_exists_ex(const char *func_name, unsigned int func_len TSRMLS_DC);
-int zephir_function_quick_exists_ex(const char *func_name, unsigned int func_len, unsigned long key TSRMLS_DC);
-
-/* Count */
-void zephir_fast_count(zval *result, zval *array TSRMLS_DC);
-int zephir_fast_count_ev(zval *array TSRMLS_DC);
-int zephir_fast_count_int(zval *value TSRMLS_DC);
-
-/* Utils functions */
-int zephir_is_iterable_ex(zval *arr, HashTable **arr_hash, HashPosition *hash_position, int duplicate, int reverse);
-void zephir_safe_zval_ptr_dtor(zval *pzval);
-
-
-/* Fetch Parameters */
-int zephir_fetch_parameters(int num_args TSRMLS_DC, int required_args, int optional_args, ...);
+#include "Zend/zend_constants.h"
+#include "kernel/exception.h"
 
 /* Compatibility with PHP 5.3 */
 #ifndef ZVAL_COPY_VALUE
@@ -83,6 +59,49 @@ int zephir_fetch_parameters(int num_args TSRMLS_DC, int required_args, int optio
   Z_UNSET_ISREF_P(z);
 #endif
 
+/* Startup functions */
+zend_class_entry *zephir_register_internal_interface_ex(zend_class_entry *orig_ce, zend_class_entry *parent_ce TSRMLS_DC);
+
+/* Globals functions */
+int zephir_init_global(char *global, unsigned int global_length TSRMLS_DC);
+int zephir_get_global(zval **arr, const char *global, unsigned int global_length TSRMLS_DC);
+
+int zephir_is_callable(zval *var TSRMLS_DC);
+int zephir_function_exists(const zval *function_name TSRMLS_DC);
+int zephir_function_exists_ex(const char *func_name, unsigned int func_len TSRMLS_DC);
+int zephir_function_quick_exists_ex(const char *func_name, unsigned int func_len, unsigned long key TSRMLS_DC);
+
+/* types */
+void zephir_gettype(zval *return_value, zval *arg TSRMLS_DC);
+
+/* Count */
+void zephir_fast_count(zval *result, zval *array TSRMLS_DC);
+int zephir_fast_count_ev(zval *array TSRMLS_DC);
+int zephir_fast_count_int(zval *value TSRMLS_DC);
+
+/* Utils functions */
+static inline int zephir_maybe_separate_zval(zval** z)
+{
+	if (Z_REFCOUNT_PP(z) > 1 && !Z_ISREF_PP(z)) {
+		zval *new_zv;
+
+		ALLOC_ZVAL(new_zv);
+		INIT_PZVAL_COPY(new_zv, *z);
+		*z = new_zv;
+		zval_copy_ctor(new_zv);
+
+		return 1;
+	}
+
+	return 0;
+}
+
+int zephir_is_iterable_ex(zval *arr, HashTable **arr_hash, HashPosition *hash_position, int duplicate, int reverse);
+void zephir_safe_zval_ptr_dtor(zval *pzval);
+
+/* Fetch Parameters */
+int zephir_fetch_parameters(int num_args TSRMLS_DC, int required_args, int optional_args, ...);
+
 /** Symbols */
 #define ZEPHIR_READ_SYMBOL(var, auxarr, name) if (EG(active_symbol_table)){ \
 	if (zend_hash_find(EG(active_symbol_table), name, sizeof(name), (void **)  &auxarr) == SUCCESS) { \
@@ -93,6 +112,21 @@ int zephir_fetch_parameters(int num_args TSRMLS_DC, int required_args, int optio
 	} else { \
 		ZVAL_NULL(var); \
 	}
+
+#define RETURN_ON_FAILURE(what) \
+	do { \
+		if (what == FAILURE) { \
+			return; \
+		} \
+	} while (0)
+
+#define RETURN_MM_ON_FAILURE(what) \
+	do { \
+		if (what == FAILURE) { \
+			ZEPHIR_MM_RESTORE(); \
+			return; \
+		} \
+	} while (0)
 
 /**
  * Return zval checking if it's needed to ctor
@@ -220,38 +254,53 @@ int zephir_fetch_parameters(int num_args TSRMLS_DC, int required_args, int optio
 	return;
 
 /**
+ * Returns a zval in an object member
+ */
+#define RETURN_MM_MEMBER(object, member_name) \
+  zephir_return_property_quick(return_value, return_value_ptr, object, SL(member_name), zend_inline_hash_func(SS(member_name)) TSRMLS_CC); \
+  RETURN_MM();
+
+/**
  * Returns a zval in an object member (quick)
  */
 #define RETURN_MEMBER_QUICK(object, member_name, key) \
  	zephir_return_property_quick(return_value, return_value_ptr, object, SL(member_name), key TSRMLS_CC); \
 	return;
 
+/**
+ * Returns a zval in an object member (quick)
+ */
+#define RETURN_MM_MEMBER_QUICK(object, member_name, key) \
+  zephir_return_property_quick(return_value, return_value_ptr, object, SL(member_name), key TSRMLS_CC); \
+  RETURN_MM();
+
 /** Return without change return_value */
-#define RETURN_MM() ZEPHIR_MM_RESTORE(); return;
+#define RETURN_MM()                 { ZEPHIR_MM_RESTORE(); return; }
 
 /** Return null restoring memory frame */
-#define RETURN_MM_BOOL(value) ZEPHIR_MM_RESTORE(); RETURN_BOOL(value);
+#define RETURN_MM_BOOL(value)       { RETVAL_BOOL(value); ZEPHIR_MM_RESTORE(); return; }
 
 /** Return null restoring memory frame */
-#define RETURN_MM_NULL() ZEPHIR_MM_RESTORE(); RETURN_NULL();
+#define RETURN_MM_NULL()            { RETVAL_NULL(); ZEPHIR_MM_RESTORE(); return; }
 
 /** Return bool restoring memory frame */
-#define RETURN_MM_FALSE ZEPHIR_MM_RESTORE(); RETURN_FALSE;
-#define RETURN_MM_TRUE ZEPHIR_MM_RESTORE(); RETURN_TRUE;
+#define RETURN_MM_FALSE             { RETVAL_FALSE; ZEPHIR_MM_RESTORE(); return; }
+#define RETURN_MM_TRUE              { RETVAL_TRUE; ZEPHIR_MM_RESTORE(); return; }
 
 /** Return string restoring memory frame */
-#define RETURN_MM_STRING(str, copy) ZEPHIR_MM_RESTORE(); RETURN_STRING(str, copy);
-#define RETURN_MM_EMPTY_STRING() ZEPHIR_MM_RESTORE(); RETURN_EMPTY_STRING();
+#define RETURN_MM_STRING(str, copy) { RETVAL_STRING(str, copy); ZEPHIR_MM_RESTORE(); return; }
+#define RETURN_MM_EMPTY_STRING()    { RETVAL_EMPTY_STRING(); ZEPHIR_MM_RESTORE(); return; }
 
 /** Return empty array */
-#define RETURN_EMPTY_ARRAY() array_init(return_value); return;
-#define RETURN_MM_EMPTY_ARRAY() ZEPHIR_MM_RESTORE(); RETURN_EMPTY_ARRAY();
+#define RETVAL_EMPTY_ARRAY()        { array_init(return_value); }
+#define RETURN_EMPTY_ARRAY()        { RETVAL_EMPTY_ARRAY(); return; }
+#define RETURN_MM_EMPTY_ARRAY()     { RETVAL_EMPTY_ARRAY(); ZEPHIR_MM_RESTORE(); return; }
 
 /* Return long */
-#define RETURN_MM_LONG(value) ZEPHIR_MM_RESTORE(); RETURN_LONG(value);
+#define RETURN_MM_LONG(value)       { RETVAL_LONG(value); ZEPHIR_MM_RESTORE(); return; }
 
 /* Return double */
-#define RETURN_MM_DOUBLE(value) ZEPHIR_MM_RESTORE(); RETURN_DOUBLE(value);
+#define RETURN_MM_DOUBLE(value)     { RETVAL_DOUBLE(value); ZEPHIR_MM_RESTORE(); return; }
 
 #ifndef IS_INTERNED
 #define IS_INTERNED(key) 0
@@ -290,8 +339,8 @@ int zephir_fetch_parameters(int num_args TSRMLS_DC, int required_args, int optio
 
 /** Check if an array is iterable or not */
 #define zephir_is_iterable(var, array_hash, hash_pointer, duplicate, reverse) \
-	if (!zephir_is_iterable_ex(var, array_hash, hash_pointer, duplicate, reverse)) { \
-		zend_error(E_ERROR, "The argument is not iterable()"); \
+	if (!var || !zephir_is_iterable_ex(var, array_hash, hash_pointer, duplicate, reverse)) { \
+		ZEPHIR_THROW_EXCEPTION_STRW(zend_exception_get_default(TSRMLS_C), "The argument is not initialized or iterable()"); \
 		ZEPHIR_MM_RESTORE(); \
 		return; \
 	}
@@ -402,10 +451,16 @@ int zephir_fetch_parameters(int num_args TSRMLS_DC, int required_args, int optio
 		} \
 	} while (0)
 
+#define zephir_hash_move_forward_ex(ht, pos) *pos = (*pos ? (*pos)->pListNext : NULL)
+
+
+#define ZEPHIR_GET_CONSTANT(return_value, const_name) \
+	RETURN_MM_ON_FAILURE(zend_get_constant(SL(const_name), return_value TSRMLS_CC));
+
 #ifndef ZEPHIR_RELEASE
 #define ZEPHIR_DEBUG_PARAMS , const char *file, int line
 #else
-#define ZEPHIR_DEBUG_PARAMS
+#define ZEPHIR_DEBUG_PARAMS , const char *file, int line
 #endif
 
 #endif /* ZEPHIR_KERNEL_MAIN_H */

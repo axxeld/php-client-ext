@@ -3,7 +3,7 @@
   +------------------------------------------------------------------------+
   | Zephir Language                                                        |
   +------------------------------------------------------------------------+
-  | Copyright (c) 2011-2013 Zephir Team (http://www.zephir-lang.com)       |
+  | Copyright (c) 2011-2014 Zephir Team (http://www.zephir-lang.com)       |
   +------------------------------------------------------------------------+
   | This source file is subject to the New BSD License that is bundled     |
   | with this package in the file docs/LICENSE.txt.                        |
@@ -23,6 +23,7 @@
 
 /** Class Retrieving/Checking */
 extern int zephir_class_exists(const zval *class_name, int autoload TSRMLS_DC);
+extern int zephir_interface_exists(const zval *interface_name, int autoload TSRMLS_DC);
 extern void zephir_get_class(zval *result, zval *object, int lower TSRMLS_DC);
 extern void zephir_get_class_ns(zval *result, zval *object, int lower TSRMLS_DC);
 extern void zephir_get_ns_class(zval *result, zval *object, int lower TSRMLS_DC);

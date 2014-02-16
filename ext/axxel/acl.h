@@ -14,36 +14,36 @@ PHP_METHOD(Axxel_Acl, allow);
 PHP_METHOD(Axxel_Acl, isAllowed);
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_axxel_acl___construct, 0, 0, 2)
-	ZEND_ARG_INFO(0, axxel)
-	ZEND_ARG_INFO(0, name)
+  ZEND_ARG_INFO(0, axxel)
+  ZEND_ARG_INFO(0, name)
 ZEND_END_ARG_INFO()
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_axxel_acl_addrole, 0, 0, 1)
-	ZEND_ARG_INFO(0, name)
+  ZEND_ARG_INFO(0, name)
 ZEND_END_ARG_INFO()
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_axxel_acl_isrole, 0, 0, 1)
-	ZEND_ARG_INFO(0, name)
+  ZEND_ARG_INFO(0, name)
 ZEND_END_ARG_INFO()
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_axxel_acl_addresource, 0, 0, 1)
-	ZEND_ARG_INFO(0, name)
+  ZEND_ARG_INFO(0, name)
 ZEND_END_ARG_INFO()
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_axxel_acl_isresource, 0, 0, 1)
-	ZEND_ARG_INFO(0, name)
+  ZEND_ARG_INFO(0, name)
 ZEND_END_ARG_INFO()
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_axxel_acl_allow, 0, 0, 3)
-	ZEND_ARG_INFO(0, role)
-	ZEND_ARG_INFO(0, resource)
-	ZEND_ARG_INFO(0, action)
+  ZEND_ARG_INFO(0, role)
+  ZEND_ARG_INFO(0, resource)
+  ZEND_ARG_INFO(0, action)
 ZEND_END_ARG_INFO()
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_axxel_acl_isallowed, 0, 0, 3)
-	ZEND_ARG_INFO(0, role)
-	ZEND_ARG_INFO(0, resource)
-	ZEND_ARG_INFO(0, permissions)
+  ZEND_ARG_INFO(0, role)
+  ZEND_ARG_INFO(0, resource)
+  ZEND_ARG_INFO(0, permissions)
 ZEND_END_ARG_INFO()
 
 ZEPHIR_INIT_FUNCS(axxel_acl_method_entry) {
@@ -56,5 +56,5 @@ ZEPHIR_INIT_FUNCS(axxel_acl_method_entry) {
 	PHP_ME(Axxel_Acl, getResources, NULL, ZEND_ACC_PUBLIC)
 	PHP_ME(Axxel_Acl, allow, arginfo_axxel_acl_allow, ZEND_ACC_PUBLIC)
 	PHP_ME(Axxel_Acl, isAllowed, arginfo_axxel_acl_isallowed, ZEND_ACC_PUBLIC)
-	PHP_FE_END
+  PHP_FE_END
 };

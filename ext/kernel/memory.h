@@ -3,7 +3,7 @@
   +------------------------------------------------------------------------+
   | Zephir Language                                                        |
   +------------------------------------------------------------------------+
-  | Copyright (c) 2011-2013 Zephir Team (http://www.zephir-lang.com)       |
+  | Copyright (c) 2011-2014 Zephir Team (http://www.zephir-lang.com)       |
   +------------------------------------------------------------------------+
   | This source file is subject to the New BSD License that is bundled     |
   | with this package in the file docs/LICENSE.txt.                        |
@@ -88,11 +88,10 @@ extern void ZEPHIR_FASTCALL zephir_copy_ctor(zval *destiny, zval *origin);
 			ALLOC_ZVAL(z); \
 			Z_SET_REFCOUNT_P(z, 1); \
 			Z_UNSET_ISREF_P(z); \
-			ZVAL_NULL(z); \
 		} else {\
 			zval_dtor(z); \
-			ZVAL_NULL(z); \
 		} \
+		ZVAL_NULL(z); \
 	} else { \
 		zephir_memory_alloc(&z TSRMLS_CC); \
 	}
